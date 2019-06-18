@@ -2,6 +2,8 @@ import urllib.request
 import json
 from datetime import date
 import matplotlib.pyplot as plt
+import numpy as np
+from numpy import array
 import http.server
 import socketserver
 PORT = 3011
@@ -42,8 +44,14 @@ class PlotHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
   self.send_response(200)
   self.send_header("Content-type", "image/png")
   self.end_headers()
-  plt.plot(plotExpenseRevenue(self.path))
-  plt.xticks([0,365,730],('June 2017','June 2018','June 2019'))
+  a = plotExpenseRevenue(self.path)
+  a = np.interp([x / 80 for x in range(58400)],[x for x in range(730)],a)
+  b = np.ma.masked_where(array(a) < 0, array(a))
+  c = np.ma.masked_where(array(a) >= 0, array(a))
+  plt.plot(b,color='#38C143')
+  plt.plot(c,color='xkcd:red')
+  plt.plot([0 for x in range(58400)], color='xkcd:black', linewidth=0.3)
+  plt.xticks([0,29200,58400],('June 2017','June 2018','June 2019'))
   plt.title(self.path[1:])
   plt.savefig(self.wfile)
   plt.close()
